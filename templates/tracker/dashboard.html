@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
+        <h3 class="text-gray-500 text-sm font-semibold uppercase tracking-wider">Przychody</h3>
+        <p class="text-3xl font-bold text-green-600 mt-2">{{ total_income|floatformat:2 }} PLN</p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-red-500">
+        <h3 class="text-gray-500 text-sm font-semibold uppercase tracking-wider">Wydatki</h3>
+        <p class="text-3xl font-bold text-red-600 mt-2">{{ total_expense|floatformat:2 }} PLN</p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
+        <h3 class="text-gray-500 text-sm font-semibold uppercase tracking-wider">Bilans</h3>
+        <p class="text-3xl font-bold text-blue-600 mt-2">{{ balance|floatformat:2 }} PLN</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+    <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">Wydatki wg kategorii</h3>
+        <div class="relative h-64">
+            <canvas id="expenseChart"></canvas>
+        </div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">Ostatnie transakcje</h3>
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white">
+                <thead class="bg-gray-100 text-gray-600">
+                    <tr>
+                        <th class="py-2 px-4 text-left">Data</th>
+                        <th class="py-2 px-4 text-left">Opis</th>
+                        <th class="py-2 px-4 text-left">Kategoria</th>
+                        <th class="py-2 px-4 text-right">Kwota</th>
+                    </tr>
+                </thead>
+                <tbody class="text-gray-700">
+                    {% for t in recent_transactions %}
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="py-2 px-4">{{ t.date }}</td>
+                        <td class="py-2 px-4">{{ t.description|default:"-" }}</td>
+                        <td class="py-2 px-4">{{ t.category.name }}</td>
+                        <td class="py-2 px-4 text-right {% if t.category.type == 'INCOME' %}text-green-600{% else %}text-red-600{% endif %}">
+                            {{ t.amount|floatformat:2 }} PLN
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="py-4 text-center text-gray-500">Brak transakcji</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="mt-4 text-right">
+            <a href="{% url 'transaction_list' %}" class="text-indigo-600 hover:text-indigo-800 text-sm font-semibold">Zobacz wszystkie &rarr;</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('expenseChart').getContext('2d');
+        const labels = {{ chart_labels|safe }};
+        const data = {{ chart_data|safe }};
+        
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: [
+                        '#EF4444', '#3B82F6', '#F59E0B', '#10B981', '#8B5CF6', '#EC4899', '#14B8A6'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
