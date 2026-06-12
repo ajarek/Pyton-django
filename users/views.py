@@ -3,6 +3,10 @@ from django.contrib.auth import login
 from .forms import CustomUserCreationForm
 
 def register(request):
+    """
+    Obsługuje proces rejestracji nowego użytkownika.
+    Po pomyślnej rejestracji użytkownik jest automatycznie logowany i przekierowywany do panelu głównego.
+    """
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():

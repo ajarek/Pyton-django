@@ -2,13 +2,13 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-<div class="max-w-xl mx-auto bg-white p-8 rounded-lg shadow-md">
-    <h2 class="text-2xl font-bold mb-6 text-gray-800">Nowa kategoria</h2>
-    <form method="post">
+<div class="max-w-xl mx-auto bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md transition-colors">
+    <h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100">Dodaj nową kategorię</h2>
+    <form method="post" class="dark:text-gray-200">
         {% csrf_token %}
         {{ form|crispy }}
         <div class="mt-6 flex justify-end space-x-3">
-            <a href="{% url 'category_list' %}" class="bg-gray-200 text-gray-700 py-2 px-4 rounded hover:bg-gray-300 transition">Anuluj</a>
+            <a href="{% url 'category_list' %}" class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-2 px-4 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition">Anuluj</a>
             <button type="submit" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded hover:bg-indigo-700 transition">Zapisz</button>
         </div>
     </form>

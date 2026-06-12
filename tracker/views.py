@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from .models import Transaction, Category
@@ -6,6 +6,10 @@ from .forms import TransactionForm, CategoryForm
 
 @login_required
 def dashboard(request):
+    """
+    Wyświetla panel główny użytkownika.
+    Oblicza sumę przychodów, wydatków, bilans oraz przygotowuje dane do wykresu.
+    """
     transactions = Transaction.objects.filter(user=request.user)
     
     total_income = transactions.filter(category__type='INCOME').aggregate(Sum('amount'))['amount__sum'] or 0
@@ -30,11 +34,13 @@ def dashboard(request):
 
 @login_required
 def transaction_list(request):
+    """Wyświetla listę wszystkich transakcji zalogowanego użytkownika."""
     transactions = Transaction.objects.filter(user=request.user).order_by('-date')
     return render(request, 'tracker/transaction_list.html', {'transactions': transactions})
 
 @login_required
 def transaction_create(request):
+    """Umożliwia dodanie nowej transakcji przez użytkownika."""
     if request.method == 'POST':
         form = TransactionForm(request.POST, user=request.user)
         if form.is_valid():
@@ -47,12 +53,36 @@ def transaction_create(request):
     return render(request, 'tracker/transaction_form.html', {'form': form})
 
 @login_required
+def transaction_edit(request, pk):
+    """Umożliwia edycję istniejącej transakcji należącej do użytkownika."""
+    transaction = get_object_or_404(Transaction, pk=pk, user=request.user)
+    if request.method == 'POST':
+        form = TransactionForm(request.POST, instance=transaction, user=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect('transaction_list')
+    else:
+        form = TransactionForm(instance=transaction, user=request.user)
+    return render(request, 'tracker/transaction_form.html', {'form': form, 'editing': True})
+
+@login_required
+def transaction_delete(request, pk):
+    """Obsługuje usuwanie transakcji po potwierdzeniu przez użytkownika."""
+    transaction = get_object_or_404(Transaction, pk=pk, user=request.user)
+    if request.method == 'POST':
+        transaction.delete()
+        return redirect('transaction_list')
+    return render(request, 'tracker/transaction_confirm_delete.html', {'transaction': transaction})
+
+@login_required
 def category_list(request):
+    """Wyświetla listę kategorii zdefiniowanych przez użytkownika."""
     categories = Category.objects.filter(user=request.user)
     return render(request, 'tracker/category_list.html', {'categories': categories})
 
 @login_required
 def category_create(request):
+    """Umożliwia utworzenie nowej kategorii przez użytkownika."""
     if request.method == 'POST':
         form = CategoryForm(request.POST)
         if form.is_valid():
